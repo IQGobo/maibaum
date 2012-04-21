@@ -269,9 +269,37 @@
 									this.ctx.fillRect(0, 0, this.leaveType, lengthFactor);
 									this.ctx.stroke();
 								}
+								
+								if (rand(1, 16) > 14)
+								{
+									this.ctx.save();
+									/*
+									// this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+									this.ctx.rotate(Math.PI);
+									// this.ctx.resetTransform();
+									this.ctx.fillStyle = "rgb(" + rand(80, 254) + "," + rand(80, 254) + "," + rand(80, 254) + ")";
+									this.ctx.fillRect(0, 0, 400, 1200);
+									this.ctx.stroke();
+									*/
+									drawStripes(this.ctx, 400, 1700, 90);
+									this.ctx.restore();
+								}
 							}
 						}
 					};
+					
+		function drawStripes(c, w, h, a)
+		{
+			c.save();
+			//c.setTransform(1, 0, 0, 1, 0, 0);
+			//c.resetTransform();
+			c.rotate(a * Math.PI/180);
+			c.fillStyle = "rgb(" + rand(80, 254) + ", " + rand(80, 254) + ", " + rand(80, 254) + ")";
+			c.fillRect(0, 0, w, h);
+			c.stroke();
+			c.restore();
+			return true;
+		}
 		
 		function rand (min, max)
 		{
