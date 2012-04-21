@@ -1,0 +1,339 @@
+<html>
+<head>
+	<title>Dein eigener Maibaum</title>
+	<style type="text/css">
+		body { background-color: #89C2FA; }
+		#canvas { border: 1px solid #c0c0c0; margin: auto auto; }
+		#heart
+		{
+			position: absolute;
+			left: -2000px;
+			bottom: 2000px;
+			z-index: 10;
+			width: 300px;
+			height: 300px;
+			background: url(heart.png) no-repeat;
+			text-align: center;
+		}
+		#oath
+		{
+			position: relative;
+			top: 100px;
+			font-size: 30px;
+			color: brown;
+			text-shadow: #0c0c0c 1px 1px 2px, #c0c0c0 -1px -1px 2px;
+			transform: rotate(-30deg);
+			-moz-transform: rotate(-30deg);
+			margin-top: 100px;
+		}
+	</style>
+	<script type="text/javascript">
+		var cheight;
+		var cwidth;
+		var twidth;
+		var theight;
+		var ctx;
+		
+		var sonne =	{
+						c: '',	// context
+						w: 0,		// Breite des Canvas
+						h: 0,		// Höhe des Canvas
+						r: 0,		// Rotwert der Sonne
+						g: 0,		// Grünwert
+						b: 0,		// Blauwert
+						x: 0,		// Position x
+						y: 0,		// Position y
+						l: 0,		// Länge der Strahlen und Radius der Sonne
+						
+						draw: function(ctx, h, w)
+							{
+								this.c = ctx;
+								this.h = h;
+								this.w = w;
+								
+								// wie gross wird die Sonne? Mindestens 10 Pixel, maximal ein Sechstel der Canvas-Grösse
+								this.l = rand(10, Math.min(h, w) / 8);
+								
+								// wo steht die Sonne? Irgendwo im oberen Drittel
+								this.x = rand(0, w);
+								this.y = rand(0, h / 3);
+								
+								// welche Farbe hat die Sonne?
+								// Sehr hoher Rotwert
+								this.r = rand(220, 255);
+								// viel grün, soll ja eine helle Farbe werden, aber nicht maximal
+								this.g = rand(170, 240);
+								// wenig blau, soll sich ja vom Himmel abheben
+								this.b = rand(20, 100);
+								
+								// Sonne malen
+								ctx.fillStyle = "rgb(" + this.r + "," + this.g + "," + this.b + ")";
+								ctx.beginPath();
+								ctx.arc(this.x, this.y, this.l, 0, Math.PI * 2, true);
+								ctx.fill();
+								
+								// Strahlen
+								var angle = rand(0, 10);
+								var anglestep = rand(10, 40);
+								var padding = Math.floor(this.l + rand(0, this.l / 4));
+								ctx.save();
+								ctx.translate(this.x, this.y);
+								while (angle < 360)
+								{
+									var alpha = rand(20, 80) / 100;
+									var color = "rgba(" + this.r + "," + this.g + "," + this.b + "," + alpha + ")";
+									
+									ctx.save();
+									ctx.rotate(angle);
+									ctx.beginPath();
+									ctx.lineWidth = rand(1, 3);
+									ctx.strokeStyle = color;
+									ctx.moveTo(0, padding);
+									ctx.lineTo(0, this.l * 3);
+									ctx.stroke();
+									ctx.restore();
+									
+									angle += anglestep;
+								}
+								ctx.restore();
+							}
+					}
+					
+		var wolke = {
+						c: '',
+						x: 0,
+						y: 0,
+						h: 0,
+						w: 0,
+						n: 0,
+						a: 0,
+						draw: function(ctx, x, y, h, n, a)
+							{
+								this.c = ctx;
+								this.x = x;
+								this.y = y;
+								this.h = h;
+								this.w = rand(h + h / 2, h * 10);
+								this.n = n;
+								this.a = a;
+								
+								ctx.beginPath();
+								ctx.fillStyle = "rgba(255,255,255," + a + ")";
+								this.ellipse(ctx, x, y, this.w, h, 0, Math.PI * 2);
+								ctx.fill();
+								
+								if (n < 4 && a > 0.4 && h > 2)
+								{
+									var offsetX = rand(0, this.w / 3);
+									var offsetY = h * (rand(50, 90) / 100);
+									if (rand(0, 1)) offsetX *= -1;
+									if (rand(0, 1)) offsetY *= -1;
+									this.draw(ctx, x + offsetX, y + offsetY, offsetY, n + 1, a * (rand(80, 100) / 100));
+								}
+							},
+						ellipse: function (context, cx, cy, r1, r2, startAngle, endAngle)
+							{
+								context.save();
+								context.translate(cx, cy);
+								context.scale(r1, r2);
+								context.arc(0, 0, 1, startAngle, endAngle, 0);
+								context.restore();
+							}
+					}
+					
+		var tree = {
+
+						canvas:     '',
+						ctx:        '',
+						height:     0,
+						width:      0,
+						spread:     0.6,
+						drawLeaves: true,
+						leavesColor:'',
+						leaveType:  this.MEDIUM_LEAVES,
+						
+						MAX_BRANCH_WIDTH:   20,
+						SMALL_LEAVES:       10,
+						MEDIUM_LEAVES:      200,
+						BIG_LEAVES:         800,
+						THIN_LEAVES:        900,
+						
+						/**
+						 * @member draw
+						 * tree.draw() initializes tthe tree structure
+						 *
+						 * @param {object} ctx      the canvas context
+						 * @param {integer} h       height of the canvas
+						 * @param {integer} w       width of the canvas
+						 * @param {float} spread    how much the tree branches are spread
+						 *                          Ranges from 0.3 - 1.
+						 * @param {boolean} leaves  draw leaves if set to true    
+						 *
+						 */
+						draw : function(ctx, h, w, spread, leaves, leaveType) {
+							// Set how much the tree branches are spread
+							if(spread >= 0.3 && spread <= 1) {
+								this.spread = spread;
+							}
+							
+							if(leaves === true || leaves === false) {
+								this.drawLeaves = leaves;
+							}
+							
+							if(leaveType == this.SMALL_LEAVES || 
+							   leaveType == this.MEDIUM_LEAVES || 
+							   leaveType == this.BIG_LEAVES || 
+							   leaveType == this.THIN_LEAVES) {
+								this.leaveType = leaveType;
+							}
+							
+							this.ctx = ctx;
+							this.height = h;
+							this.width = w;
+							//this.ctx.clearRect(0,0,this.width,this.height);
+							// Center the tree in the window
+							this.ctx.translate(this.width/2,this.height);
+							// Set the leaves to a random color
+							this.leavesColor = '#149C16';
+							// Set branch thickness
+							this.ctx.lineWidth = 1 + (Math.random() * this.MAX_BRANCH_WIDTH);
+							this.ctx.lineJoin = 'round';
+							
+							this.branch(0);
+						},
+						
+						/**
+						 * @member branch
+						 * tree.branch() main tree drawing function
+						 *
+						 * @param {String} depth the maimum depth the tree can branch,
+						 *        Keep this value near 12, larger value take linger to render.
+						 *
+						 */
+						branch : function(depth) {
+							if (depth < 12) 
+							{
+								this.ctx.beginPath();
+								this.ctx.moveTo(0,0);
+								this.ctx.lineTo(0,-(this.height)/10);
+								this.ctx.stroke();
+								
+								this.ctx.translate(0,-this.height/10);
+								// Random integer from -0.1 to 0.1
+								var randomN = -(Math.random() * 0.2) + 0.1;
+
+								this.ctx.rotate(randomN); 
+
+								if ((Math.random() * 1) < this.spread)
+								{
+									// Draw the left branches
+									this.ctx.rotate(-0.3);
+									this.ctx.scale(0.7,0.7);
+									this.ctx.save();
+									this.branch(depth + 1);
+									// Draw the right branches
+									this.ctx.restore();  
+									this.ctx.rotate(0.6);
+									this.ctx.save();
+									this.branch(depth + 1);   
+									this.ctx.restore();        
+								}
+								else 
+								{ 
+									this.branch(depth);
+								}
+								
+								if (depth > 9)
+								{
+									if(this.drawLeaves) {
+										var lengthFactor = 400;
+										if(this.leaveType === this.THIN_LEAVES) {
+											lengthFactor = 10;
+										}
+										this.ctx.fillStyle = this.leavesColor;
+										this.ctx.fillRect(0, 0, this.leaveType, lengthFactor);
+										this.ctx.stroke();
+									}
+								}
+
+							}
+							else
+							{   
+								// Now that we have done drawing branches, draw the leaves
+								if(this.drawLeaves) {
+									var lengthFactor = 400;
+									if(this.leaveType === this.THIN_LEAVES) {
+										lengthFactor = 10;
+									}
+									this.ctx.fillStyle = this.leavesColor;
+									this.ctx.fillRect(0, 0, this.leaveType, lengthFactor);
+									this.ctx.stroke();
+								}
+							}
+						}
+					};
+		
+		function rand (min, max)
+		{
+			return Math.floor(Math.random() * (max - min + 1)) + min;
+		}
+		
+		function init()
+		{
+			var canvas = document.getElementById("canvas");
+			
+			cwidth = Math.floor(window.innerWidth * 0.98);
+			cheight = Math.floor(window.innerHeight * 0.98);
+			canvas.width = cwidth;
+			canvas.height = cheight;
+			theight = cheight * 0.7;
+			twidth = cwidth * 0.8;
+			
+			ctx = canvas.getContext("2d");
+			
+			canvas.onclick = function()
+			{
+				window.location = canvas.toDataURL("image/png");
+			}
+			
+			ctx.clearRect(0, 0, cwidth, cheight);
+			var lingrad = ctx.createLinearGradient(0, 0, 0, cheight);
+			lingrad.addColorStop(0, '#00ABEB');
+			lingrad.addColorStop(1, '#89C2FA');
+			ctx.fillStyle = lingrad;
+			ctx.fillRect(0, 0, cwidth, cheight);
+			
+			ctx.save();
+			// Sonne malen
+			sonne.draw(ctx, cheight, cwidth);
+			ctx.restore();
+			ctx.save();
+			// Wolken malen
+			var maxClouds = rand(2, 5);
+			for (var i = 0; i < maxClouds; i++)
+			{
+				wolke.draw(ctx, rand(0, cwidth), rand(0, (cheight / 3) * 2), rand(5, 50), 1, rand(80, 100) / 100);
+				ctx.restore();
+			}
+			ctx.save();
+			// Baum malen
+			tree.draw(ctx, cheight, cwidth, 0.6, true, tree.BIG_LEAVES);
+			ctx.restore();
+			
+			var oath = document.getElementById('oath');
+			var hash = window.location.hash.substr(1);
+			
+			if (hash.length > 0)
+			{
+				oath.innerHTML = hash;
+				oath.parentNode.style.left = '20px';
+				oath.parentNode.style.bottom = '20px';
+			}
+		}
+	</script>
+</head>
+<body onload="init();">
+	<canvas id="canvas"></canvas>
+	<div id="heart"><span id="oath">&nbsp;</span></div>
+</body>
+</html>
