@@ -1,0 +1,18 @@
+Maibaum - show some love
+========================
+
+This one file website paints a new tree in front of a sunny sky with some clouds. 
+Not sure about your local tradition, but in germany you setup such trees for the girl you love during the night to the first of may. Being a nerd, you better not leave your cosy basement and expose yourself to some wildlife environment but instead show your love binary.
+
+Tips
+====
+- Include your very own love oath by suffixing a local anchor tag to your URL (just add "#you+her" after the index.html).
+- if you click the canvas (the generated picture of the tree and everything) to open that as an image to be able to save it to disk
+
+Bugs and known issues
+=====================
+- Only tested in firefox
+- heart image not included for copyright reasons
+- no colored stripes yet
+- does not look like a birch yet
+- comments are german right now, might change later on
