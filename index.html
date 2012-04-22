@@ -341,14 +341,16 @@
 			// Sonne malen
 			sonne.draw(ctx, cheight, cwidth);
 			ctx.restore();
-			ctx.save();
+			
 			// Wolken malen
 			var maxClouds = rand(2, 5);
 			for (var i = 0; i < maxClouds; i++)
 			{
+				ctx.save();
 				wolke.draw(ctx, rand(0, cwidth), rand(0, (cheight / 3) * 2), rand(5, 50), 1, rand(80, 100) / 100);
 				ctx.restore();
 			}
+			wolke.draw(ctx, -100, -100, 2, 5, 0);	// dirty hack to avoid the last black outlined cloud out of the viewport
 			
 			// Baum malen
 			// aber erst die Birken-Bitmap laden
