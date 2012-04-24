@@ -13,5 +13,10 @@ Bugs and known issues
 =====================
 - Only tested in firefox
 - heart image not included for copyright reasons
-- colored stripes face all the way they like, not just generally down
-- comments are german right now, might change later on
+
+Future plans
+============
+- include the birch texture as inline code (get back to one file only)
+- draw the oath procedurally in the canvas, not HTML DOM (and get rid of another additional file that way) to allow the oath to be included in the saveable image
+- maybe add some grassy ground
+- tweak the page title by factoring in a part of the oath?
