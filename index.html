@@ -15,17 +15,6 @@
 			background: url(heart.png) no-repeat;
 			text-align: center;
 		}
-		#oath
-		{
-			position: relative;
-			top: 100px;
-			font-size: 30px;
-			color: brown;
-			text-shadow: #0c0c0c 1px 1px 2px, #c0c0c0 -1px -1px 2px;
-			transform: rotate(-30deg);
-			-moz-transform: rotate(-30deg);
-			margin-top: 100px;
-		}
 	</style>
 	<script type="text/javascript">
 		var cheight;
@@ -306,6 +295,22 @@
 			return true;
 		}
 		
+		function drawHeart(ctx, p) {
+			// Draw heart
+			ctx.strokeStyle = "#c33";
+			ctx.strokeStyle = "#D9001D";
+			ctx.lineWidth = p.radius;
+			ctx.lineCap = "round";
+			ctx.lineJoin = "miter";
+			ctx.beginPath();
+			ctx.moveTo(p.x-p.radius/2, p.y-p.radius/2);
+			ctx.lineTo(p.x, p.y);
+			ctx.lineTo(p.x+p.radius/2, p.y-p.radius/2);
+			//ctx.fill();
+			ctx.stroke();
+			ctx.closePath();
+		}
+		
 		// convinience function, random integers between min and max (inclusive)
 		function rand (min, max)
 		{
@@ -356,28 +361,37 @@
 				wolke.draw(ctx, rand(0, cwidth), rand(0, (cheight / 3) * 2), rand(5, 50), 1, rand(80, 100) / 100);
 				ctx.restore();
 			}
-			wolke.draw(ctx, -100, -100, 2, 5, 0);	// dirty hack to avoid the last black outlined cloud out of the viewport
+			
 			
 			// now for the real thing: construct the tree!
 			// but first we need to load the birch texture and call the tree code as soon as it finishes loading
 			birch.onload = function() { ctx.save(); tree.draw(ctx, cheight, cwidth, 0.6, true, tree.BIG_LEAVES); ctx.restore(); };
-			birch.src = 'birch.png';
+			birch.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAB/AQMAAADVdHDXAAAAAXNSR0IArs4c6QAAAAZQTFRFAAAA////pdmf3QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wEFhMELRYJXC8AAAEYSURBVBjTbVFLSgNBEH0QIcs5gIuZIwgeoAUP4MKlaAbcuBBtCRiHhOncxNzDxYx4AL1BStw7DW4ixLSvu2cyCml4vFddVV2fBniUEwybN0zIxmXQL4Lb0uscU1eTqT+IVFBs6AtxgtGX50XQ3Z0xgrHnJxttovRvrDVMJTii3xwy11pMLPVygZQxegO4H9pNvs0zbe2bgUVBTtYHwT5rawY0kY+fa5Sp9Pfs05ELF+c4J18Pst5f1eG+ryW4JE6J/ZXG/Uig/Hyf0edCjA1zKrLinvbucsyG8u8NH7PVy9jfivzQ7axl5eZIrMb4dXdut/dvZOyrDjvyu/1by7V8QlxdcJZ35j/2/soBCXNz6pmJ/2yCFv/tv01ZCM2G80D8AAAAAElFTkSuQmCC';
 			
 			// now for the optional oath stuff, only needed if we got passed a local anchor in the URL
 			var hash = window.location.hash.substr(1);
 			if (hash.length > 0)
 			{
-				var oath = document.getElementById('oath');
 				
-				oath.innerHTML = hash;
-				oath.parentNode.style.left = '20px';
-				oath.parentNode.style.bottom = '20px';
+				// use the new heart canvas path
+				drawHeart(ctx, { radius: Math.min(cheight, cwidth) / 8, x: cwidth / 8, y: cheight - (cheight / 8) });
+				ctx.save();
+				ctx.font      = "normal bold 30px Verdana Arial sans-serif";
+				ctx.lineWidth = 1.0;
+				ctx.fillStyle = "#f0f0f0";
+				ctx.strokeStyle = "#0c0c0c";
+				ctx.textAlign = "center";
+				//ctx.rotate(Math.PI / 6);	// breaks text :(
+				ctx.fillText(hash, cwidth / 8, cheight - (cheight / 8) - 15);
+				ctx.strokeText(hash, cwidth / 8, cheight - (cheight / 8) - 15);
+				ctx.restore();
+				
 			}
+			wolke.draw(ctx, -100, -100, 2, 5, 0);	// dirty hack to avoid the last black outlined cloud out of the viewport
 		}
 	</script>
 </head>
 <body onload="init();">
 	<canvas id="canvas">I'm so sorry, but your browser is not able to show you this awesome sign of love :(  Try upgrading to a more recent browser version and come back here! <a href="http://www.getfirefox.com">Firefox is highly recommended!</a></canvas>
-	<div id="heart"><span id="oath">&nbsp;</span></div>
 </body>
 </html>

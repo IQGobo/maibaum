@@ -1,7 +1,7 @@
 Maibaum - show some love
 ========================
 
-This mainly one file website paints a new tree in front of a sunny sky with some clouds. 
+This one file website paints a new tree in front of a sunny sky with some clouds. 
 Not sure about your local tradition, but in germany you setup such trees for the girl you love during the night to the first of may. Being a nerd, you better not leave your cosy basement and expose yourself to some wildlife environment but instead show your love binary.
 
 Tips
@@ -12,11 +12,8 @@ Tips
 Bugs and known issues
 =====================
 - Only tested in firefox
-- heart image not included for copyright reasons
 
 Future plans
 ============
-- include the birch texture as inline code (get back to one file only)
-- draw the oath procedurally in the canvas, not HTML DOM (and get rid of another additional file that way) to allow the oath to be included in the saveable image
 - maybe add some grassy ground
 - tweak the page title by factoring in a part of the oath?
