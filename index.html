@@ -1,6 +1,6 @@
 <html>
 <head>
-	<title>Dein eigener Maibaum</title>
+	<title>Dein individueller Maibaum</title>
 	<style type="text/css">
 		body { background-color: #89C2FA; }
 		#canvas { border: 1px solid #c0c0c0; margin: auto auto; }
@@ -30,21 +30,20 @@
 	<script type="text/javascript">
 		var cheight;
 		var cwidth;
-		var twidth;
-		var theight;
 		var ctx;
 		var birch = new Image();
 		
+		// sun code
 		var sonne =	{
-						c: '',	// context
-						w: 0,		// Breite des Canvas
-						h: 0,		// Höhe des Canvas
-						r: 0,		// Rotwert der Sonne
-						g: 0,		// Grünwert
-						b: 0,		// Blauwert
-						x: 0,		// Position x
-						y: 0,		// Position y
-						l: 0,		// Länge der Strahlen und Radius der Sonne
+						c: '',		// context
+						w: 0,		// width of the canvas
+						h: 0,		// height of the canvas
+						r: 0,		// red factor of the sun color
+						g: 0,		// green factor
+						b: 0,		// blue factor
+						x: 0,		// position x
+						y: 0,		// position y
+						l: 0,		// radius for the sun and length factor for the sun rays
 						
 						draw: function(ctx, h, w)
 							{
@@ -52,28 +51,28 @@
 								this.h = h;
 								this.w = w;
 								
-								// wie gross wird die Sonne? Mindestens 10 Pixel, maximal ein Sechstel der Canvas-Grösse
+								// size of the sun, 10 pixels min, max 1/8 of the canvas widht or height (whichever is smaller)
 								this.l = rand(10, Math.min(h, w) / 8);
 								
-								// wo steht die Sonne? Irgendwo im oberen Drittel
+								// position the sun randomly in the upper third of the picture
 								this.x = rand(0, w);
 								this.y = rand(0, h / 3);
 								
-								// welche Farbe hat die Sonne?
-								// Sehr hoher Rotwert
+								// determine the sun's color
+								// very high red factor
 								this.r = rand(220, 255);
-								// viel grün, soll ja eine helle Farbe werden, aber nicht maximal
+								// lots of green for a bright color
 								this.g = rand(170, 240);
-								// wenig blau, soll sich ja vom Himmel abheben
+								// a little blue to contrast the blue sky
 								this.b = rand(20, 100);
 								
-								// Sonne malen
+								// draw the sun
 								ctx.fillStyle = "rgb(" + this.r + "," + this.g + "," + this.b + ")";
 								ctx.beginPath();
 								ctx.arc(this.x, this.y, this.l, 0, Math.PI * 2, true);
 								ctx.fill();
 								
-								// Strahlen
+								// add sun rays
 								var angle = rand(0, 10);
 								var anglestep = rand(10, 40);
 								var padding = Math.floor(this.l + rand(0, this.l / 4));
@@ -100,14 +99,15 @@
 							}
 					}
 					
+		// cloud code
 		var wolke = {
-						c: '',
-						x: 0,
-						y: 0,
-						h: 0,
-						w: 0,
-						n: 0,
-						a: 0,
+						c: '',		// canvas context
+						x: 0,		// position x
+						y: 0,		// position y
+						h: 0,		// height of a cloud, as a radius, not diameter
+						w: 0,		// width of a cloud, calculated later by the height given
+						n: 0,		// iteration of the cloud for grouping
+						a: 0,		// alpha value to draw the cloud with some transparency
 						draw: function(ctx, x, y, h, n, a)
 							{
 								this.c = ctx;
@@ -120,9 +120,13 @@
 								
 								ctx.beginPath();
 								ctx.fillStyle = "rgba(255,255,255," + a + ")";
-								this.ellipse(ctx, x, y, this.w, h, 0, Math.PI * 2);
+								this.ellipse(ctx, x, y, this.w, h, 0, Math.PI * 2);	// call our own ellipse function
 								ctx.fill();
 								
+								// draw another cloud if we
+								// - did not exceed the max number of iterations yet (increased by one every cycle)
+								// - the alpha value is still above a certain threshold (lowered randomly every cycle)
+								// - and the cloud has a visible height (decreased randomly every cyle)
 								if (n < 4 && a > 0.4 && h > 2)
 								{
 									var offsetX = rand(0, this.w / 3);
@@ -132,45 +136,43 @@
 									this.draw(ctx, x + offsetX, y + offsetY, offsetY, n + 1, a * (rand(80, 100) / 100));
 								}
 							},
+							
+						// our own ellipse code
 						ellipse: function (context, cx, cy, r1, r2, startAngle, endAngle)
 							{
 								context.save();
+								// heart of the ellipse formula: move to the center of the ellipse and
+								// distort the context for this operation to the two radiuses in both directions
+								// this essentially creates a one by one normalized box (or two by two if you
+								// take the other three quadrants into consideration)
 								context.translate(cx, cy);
 								context.scale(r1, r2);
-								context.arc(0, 0, 1, startAngle, endAngle, 0);
+								context.arc(0, 0, 1, startAngle, endAngle, 0);	// do a normal circle, radius of 1
 								context.restore();
 							}
 					}
 					
+		// the main tree code
 		var tree = {
 
-						canvas:     '',
-						ctx:        '',
-						height:     0,
-						width:      0,
-						spread:     0.6,
-						drawLeaves: true,
-						leavesColor:'',
-						leaveType:  this.MEDIUM_LEAVES,
+						canvas:     '',						// canvas element
+						ctx:        '',						// canvas context
+						height:     0,						// canvas height
+						width:      0,						// canvas width
+						spread:     0.6,					// spread for branches
+						drawLeaves: true,					// we want to draw leaves
+						leavesColor:'',						// we set the leave color later
+						leaveType:  this.MEDIUM_LEAVES,		// thickness of the leaves
+						orientDown: Math.PI,				// radians to face downwards
+						minBreezeAngle: 0,					// in degrees, not radians
+						maxBreezeAngle: 30,					// again degrees, not radians
 						
-						MAX_BRANCH_WIDTH:   20,
-						SMALL_LEAVES:       10,
-						MEDIUM_LEAVES:      200,
-						BIG_LEAVES:         800,
-						THIN_LEAVES:        900,
+						MAX_BRANCH_WIDTH:   20,				// thickness of the branch segments
+						SMALL_LEAVES:       10,				// width for small leaves
+						MEDIUM_LEAVES:      200,			// width for normal leaves
+						BIG_LEAVES:         800,			// width for big leaves
+						THIN_LEAVES:        900,			// thin leaves get special treatment later on!
 						
-						/**
-						 * @member draw
-						 * tree.draw() initializes tthe tree structure
-						 *
-						 * @param {object} ctx      the canvas context
-						 * @param {integer} h       height of the canvas
-						 * @param {integer} w       width of the canvas
-						 * @param {float} spread    how much the tree branches are spread
-						 *                          Ranges from 0.3 - 1.
-						 * @param {boolean} leaves  draw leaves if set to true    
-						 *
-						 */
 						draw : function(ctx, h, w, spread, leaves, leaveType) {
 							// Set how much the tree branches are spread
 							if(spread >= 0.3 && spread <= 1) {
@@ -191,64 +193,66 @@
 							this.ctx = ctx;
 							this.height = h;
 							this.width = w;
-							//this.ctx.clearRect(0,0,this.width,this.height);
 							// Center the tree in the window
 							this.ctx.translate(this.width/2,this.height);
-							// Set the leaves to a random color
+							// Set the leaves to a green color
 							this.leavesColor = '#149C16';
-							// Set branch thickness
+							// Set branch thickness with some variation
 							this.ctx.lineWidth = 1 + (Math.random() * this.MAX_BRANCH_WIDTH);
 							this.ctx.lineJoin = 'round';
 							
-							this.branch(0);
+							// let's get started with the real recursive work!
+							this.branch(0, 0);
 						},
 						
-						/**
-						 * @member branch
-						 * tree.branch() main tree drawing function
-						 *
-						 * @param {String} depth the maimum depth the tree can branch,
-						 *        Keep this value near 12, larger value take linger to render.
-						 *
-						 */
-						branch : function(depth) {
+						// recursive branch drawing function, does leaves and colored stripes, too
+						branch : function(depth, angle) {
 							if (depth < 12) 
 							{
 								/*
+								// this is the boring single colored block branch drawing code for reference
 								this.ctx.beginPath();
 								this.ctx.moveTo(0,0);
 								this.ctx.lineTo(0,-(this.height)/10);
 								this.ctx.stroke();
 								*/
 								
+								// new and exciting code that renders the birch branch image for each segment
 								this.ctx.drawImage(birch, 0, -(this.height)/10, this.MAX_BRANCH_WIDTH, this.height/10);
 								
+								// advance the focus of the drawing area
 								this.ctx.translate(0,-this.height/10);
 								// Random integer from -0.1 to 0.1
 								var randomN = -(Math.random() * 0.2) + 0.1;
 
-								this.ctx.rotate(randomN); 
+								// rotate around a the random number and save it
+								this.ctx.rotate(randomN);
+								angle += randomN;	// the saved value is the clue needed to draw downward facing stripes later on
 
+								// should the branch just grow or fork off?
 								if ((Math.random() * 1) < this.spread)
 								{
-									// Draw the left branches
+									// we fork in two branches now
+									// draw the left branches
 									this.ctx.rotate(-0.3);
-									this.ctx.scale(0.7,0.7);
-									this.ctx.save();
-									this.branch(depth + 1);
+									angle -= 0.3;						// we just rotated! keep note of the angle change!
+									this.ctx.scale(0.7,0.7);			// draw smaller branches as we advance higher
+									this.ctx.save();					// cornerstone of recursion: stacks
+									this.branch(depth + 1, angle);		// continue with the left branch children
 									// Draw the right branches
-									this.ctx.restore();  
-									this.ctx.rotate(0.6);
-									this.ctx.save();
-									this.branch(depth + 1);   
-									this.ctx.restore();        
+									this.ctx.restore();  				// discard the context manipulation from the left branches
+									this.ctx.rotate(0.6);				// rotate to the right (from the left branch position)
+									angle += 0.6;						// we turned again, another change in angle to track!
+									this.ctx.save();					// save the state once again
+									this.branch(depth + 1, angle);   	// and do the right branch recursion
+									this.ctx.restore();        			// reset context transformations from the prior recursions
 								}
 								else 
 								{ 
-									this.branch(depth);
+									this.branch(depth, angle);			// we did not fork, just add another branch segment
 								}
 								
-								
+								// add some more green if we are close to the tree crown
 								if (depth > 9)
 								{
 									if(this.drawLeaves) {
@@ -275,31 +279,26 @@
 									this.ctx.fillRect(0, 0, this.leaveType, lengthFactor);
 									this.ctx.stroke();
 								}
-								
+
+								// draw colored stripes ocasionally
 								if (rand(1, 26) > 24)
 								{
-									this.ctx.save();
-									/*
-									// this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-									this.ctx.rotate(Math.PI);
-									// this.ctx.resetTransform();
-									this.ctx.fillStyle = "rgb(" + rand(80, 254) + "," + rand(80, 254) + "," + rand(80, 254) + ")";
-									this.ctx.fillRect(0, 0, 400, 1200);
-									this.ctx.stroke();
-									*/
-									drawStripes(this.ctx, 400, 1700, 90);
-									this.ctx.restore();
+									this.ctx.save();	// save the context, we are messing with rotation and colors
+									var down = Math.PI - angle + this.orientDown;	// calc radians to face downward
+									// now factor in some breeze variant to not look that static
+									down -= rand(this.minBreezeAngle, this.maxBreezeAngle) * Math.PI / 180;
+									this.ctx.rotate(down);	// turn to the breezy downward orientation
+									drawStripes(this.ctx, 400, 1900);	// and put up a stripe
+									this.ctx.restore();	// restore the context to the state before we drew a stripe
 								}
 							}
 						}
 					};
 					
-		function drawStripes(c, w, h, a)
+		// stripe drawing function, just a rectangle of random color
+		function drawStripes(c, w, h)
 		{
 			c.save();
-			//c.setTransform(1, 0, 0, 1, 0, 0);
-			//c.resetTransform();
-			c.rotate(a * Math.PI/180);
 			c.fillStyle = "rgb(" + rand(80, 254) + ", " + rand(80, 254) + ", " + rand(80, 254) + ")";
 			c.fillRect(0, 0, w, h);
 			c.stroke();
@@ -307,29 +306,34 @@
 			return true;
 		}
 		
+		// convinience function, random integers between min and max (inclusive)
 		function rand (min, max)
 		{
 			return Math.floor(Math.random() * (max - min + 1)) + min;
 		}
 		
+		// initialization stuff on page load
 		function init()
 		{
+			// get our canvas reference
 			var canvas = document.getElementById("canvas");
 			
+			// set width and height to canvas, add some crispiness!
 			cwidth = Math.floor(window.innerWidth * 0.98);
 			cheight = Math.floor(window.innerHeight * 0.98);
 			canvas.width = cwidth;
 			canvas.height = cheight;
-			theight = cheight * 0.7;
-			twidth = cwidth * 0.8;
 			
+			// we draw in flatland
 			ctx = canvas.getContext("2d");
 			
+			// ad a click handler to transform our canvas into a png to allow image saving
 			canvas.onclick = function()
 			{
 				window.location = canvas.toDataURL("image/png");
 			}
 			
+			// clear the canvas and paint the sky gradient
 			ctx.clearRect(0, 0, cwidth, cheight);
 			var lingrad = ctx.createLinearGradient(0, 0, 0, cheight);
 			lingrad.addColorStop(0, '#00ABEB');
@@ -337,12 +341,14 @@
 			ctx.fillStyle = lingrad;
 			ctx.fillRect(0, 0, cwidth, cheight);
 			
+			// now populate the the almost empty canvas with some childish sun and clouds
+
+			// sun first, might be covered by clouds later on
 			ctx.save();
-			// Sonne malen
 			sonne.draw(ctx, cheight, cwidth);
 			ctx.restore();
 			
-			// Wolken malen
+			// next up: add some simple clouds
 			var maxClouds = rand(2, 5);
 			for (var i = 0; i < maxClouds; i++)
 			{
@@ -352,16 +358,17 @@
 			}
 			wolke.draw(ctx, -100, -100, 2, 5, 0);	// dirty hack to avoid the last black outlined cloud out of the viewport
 			
-			// Baum malen
-			// aber erst die Birken-Bitmap laden
+			// now for the real thing: construct the tree!
+			// but first we need to load the birch texture and call the tree code as soon as it finishes loading
 			birch.onload = function() { ctx.save(); tree.draw(ctx, cheight, cwidth, 0.6, true, tree.BIG_LEAVES); ctx.restore(); };
 			birch.src = 'birch.png';
 			
-			var oath = document.getElementById('oath');
+			// now for the optional oath stuff, only needed if we got passed a local anchor in the URL
 			var hash = window.location.hash.substr(1);
-			
 			if (hash.length > 0)
 			{
+				var oath = document.getElementById('oath');
+				
 				oath.innerHTML = hash;
 				oath.parentNode.style.left = '20px';
 				oath.parentNode.style.bottom = '20px';
@@ -370,7 +377,7 @@
 	</script>
 </head>
 <body onload="init();">
-	<canvas id="canvas"></canvas>
+	<canvas id="canvas">I'm so sorry, but your browser is not able to show you this awesome sign of love :(  Try upgrading to a more recent browser version and come back here! <a href="http://www.getfirefox.com">Firefox is highly recommended!</a></canvas>
 	<div id="heart"><span id="oath">&nbsp;</span></div>
 </body>
 </html>
