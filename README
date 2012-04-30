@@ -11,9 +11,9 @@ Tips
 
 Bugs and known issues
 =====================
-- Only tested in firefox
+- Only tested in firefox, no error and feature checking performed
+- looks best in resolutions at about 1000 pixels (just my opinion)
 
 Future plans
 ============
-- maybe add some grassy ground
 - tweak the page title by factoring in a part of the oath?
