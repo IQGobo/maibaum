@@ -296,17 +296,15 @@
 		}
 		
 		function drawHeart(ctx, p) {
-			// Draw heart
-			ctx.strokeStyle = "#c33";
+			// Draw heart, quite a lovely hack by clever use of line properties using just two lines
 			ctx.strokeStyle = "#D9001D";
-			ctx.lineWidth = p.radius;
-			ctx.lineCap = "round";
-			ctx.lineJoin = "miter";
-			ctx.beginPath();
+			ctx.lineWidth = p.radius;	// line thickness is part of the trick, so no filling possible
+			ctx.lineCap = "round";		// this enables the arches
+			ctx.lineJoin = "miter";		// this enables the pointy end of the heart
+			ctx.beginPath();			// the path is simple, just two lines pointing downwards
 			ctx.moveTo(p.x-p.radius/2, p.y-p.radius/2);
 			ctx.lineTo(p.x, p.y);
 			ctx.lineTo(p.x+p.radius/2, p.y-p.radius/2);
-			//ctx.fill();
 			ctx.stroke();
 			ctx.closePath();
 		}
@@ -362,6 +360,35 @@
 				ctx.restore();
 			}
 			
+			// next up in the parallax layers: the ground in form of earth covered in green grass
+			ctx.save();
+			ctx.fillStyle = "#074A15";
+			ctx.fillRect(0, cheight - (cheight / 20), cwidth, (cheight / 20));
+			ctx.restore();
+
+			ctx.save();
+			ctx.strokeStyle = "#19CF3D";
+			ctx.rotate(Math.Pi/2);
+			// the grass loop
+			for (var i = cheight / 30; i > -5; i -= 3)	// lines
+			{
+				for (var j = -2; j < cwidth; )	// x positions
+				{
+					ctx.save();
+					ctx.beginPath();
+					ctx.moveTo(j, cheight - i);
+					var nudge = rand(0, 10) * Math.PI / 180;
+					// line left blank intentionally, put rotate code here experimentally
+					ctx.lineTo(j, cheight - (i + rand(4, 9)));
+					ctx.rotate(nudge);	// this rotate is essentially useless here, cut and paste to two lines above
+					ctx.stroke();
+					ctx.rotate(nudge * -1);	// not that usefull in the current setup as well. Rotation is not working to my favour...
+					ctx.restore();
+					j += rand(2, 9) / 2 - 0.5;	// place the next piece of grass several random pixels to the right
+				}
+			}
+			ctx.rotate((Math.Pi/2) * -1);
+			ctx.restore();
 			
 			// now for the real thing: construct the tree!
 			// but first we need to load the birch texture and call the tree code as soon as it finishes loading
@@ -375,15 +402,17 @@
 				
 				// use the new heart canvas path
 				drawHeart(ctx, { radius: Math.min(cheight, cwidth) / 8, x: cwidth / 8, y: cheight - (cheight / 8) });
+				// then add the message we got through the hash part of the URL
 				ctx.save();
-				ctx.font      = "normal bold 30px Verdana Arial sans-serif";
+				var fontHeight = (14 + cheight / 50);
+				ctx.font      = "normal bold " + fontHeight + "px Verdana Arial sans-serif";	// other fonts might be a nice change
 				ctx.lineWidth = 1.0;
 				ctx.fillStyle = "#f0f0f0";
 				ctx.strokeStyle = "#0c0c0c";
 				ctx.textAlign = "center";
-				//ctx.rotate(Math.PI / 6);	// breaks text :(
-				ctx.fillText(hash, cwidth / 8, cheight - (cheight / 8) - 15);
-				ctx.strokeText(hash, cwidth / 8, cheight - (cheight / 8) - 15);
+				//ctx.rotate(Math.PI / 6);	// yet again: rotation breaks something, this time the text :(
+				ctx.fillText(hash, cwidth / 8, cheight - (cheight / 8) - fontHeight / 2);
+				ctx.strokeText(hash, cwidth / 8, cheight - (cheight / 8) - fontHeight / 2);
 				ctx.restore();
 				
 			}
