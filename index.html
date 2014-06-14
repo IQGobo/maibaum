@@ -2,19 +2,9 @@
 <head>
 	<title>Dein individueller Maibaum</title>
 	<style type="text/css">
+		html, body { margin: 0px; padding: 0px; border-width: 0px; }
 		body { background-color: #89C2FA; }
-		#canvas { border: 1px solid #c0c0c0; margin: auto auto; }
-		#heart
-		{
-			position: absolute;
-			left: -2000px;
-			bottom: 2000px;
-			z-index: 10;
-			width: 300px;
-			height: 300px;
-			background: url(heart.png) no-repeat;
-			text-align: center;
-		}
+		#canvas { width: 100%; height: 100%}
 	</style>
 	<script type="text/javascript">
 		var cheight;
@@ -148,21 +138,21 @@
 						ctx:        '',						// canvas context
 						height:     0,						// canvas height
 						width:      0,						// canvas width
-						spread:     0.6,					// spread for branches
+						spread:     0.6,						// spread for branches
 						drawLeaves: true,					// we want to draw leaves
-						leavesColor:'',						// we set the leave color later
-						leaveType:  this.MEDIUM_LEAVES,		// thickness of the leaves
+						leavesColor:'',						// we set the leaf color later
+						leavesType:  this.MEDIUM_LEAVES,	// thickness of the leaves
 						orientDown: Math.PI,				// radians to face downwards
 						minBreezeAngle: 0,					// in degrees, not radians
 						maxBreezeAngle: 30,					// again degrees, not radians
 						
 						MAX_BRANCH_WIDTH:   20,				// thickness of the branch segments
 						SMALL_LEAVES:       10,				// width for small leaves
-						MEDIUM_LEAVES:      200,			// width for normal leaves
-						BIG_LEAVES:         800,			// width for big leaves
-						THIN_LEAVES:        900,			// thin leaves get special treatment later on!
+						MEDIUM_LEAVES:      200,				// width for normal leaves
+						BIG_LEAVES:         800,				// width for big leaves
+						THIN_LEAVES:        900,				// thin leaves get special treatment later on!
 						
-						draw : function(ctx, h, w, spread, leaves, leaveType) {
+						draw : function(ctx, h, w, spread, leaves, leavesType) {
 							// Set how much the tree branches are spread
 							if(spread >= 0.3 && spread <= 1) {
 								this.spread = spread;
@@ -172,11 +162,11 @@
 								this.drawLeaves = leaves;
 							}
 							
-							if(leaveType == this.SMALL_LEAVES || 
-							   leaveType == this.MEDIUM_LEAVES || 
-							   leaveType == this.BIG_LEAVES || 
-							   leaveType == this.THIN_LEAVES) {
-								this.leaveType = leaveType;
+							if(leavesType == this.SMALL_LEAVES || 
+							   leavesType == this.MEDIUM_LEAVES || 
+							   leavesType == this.BIG_LEAVES || 
+							   leavesType == this.THIN_LEAVES) {
+								this.leavesType = leavesType;
 							}
 							
 							this.ctx = ctx;
@@ -246,11 +236,11 @@
 								{
 									if(this.drawLeaves) {
 										var lengthFactor = 400;
-										if(this.leaveType === this.THIN_LEAVES) {
+										if(this.leavesType === this.THIN_LEAVES) {
 											lengthFactor = 10;
 										}
 										this.ctx.fillStyle = this.leavesColor;
-										this.ctx.fillRect(0, 0, this.leaveType, lengthFactor);
+										this.ctx.fillRect(0, 0, this.leavesType, lengthFactor);
 										this.ctx.stroke();
 									}
 								}
@@ -261,11 +251,11 @@
 								// Now that we have done drawing branches, draw the leaves
 								if(this.drawLeaves) {
 									var lengthFactor = 400;
-									if(this.leaveType === this.THIN_LEAVES) {
+									if(this.leavesType === this.THIN_LEAVES) {
 										lengthFactor = 10;
 									}
 									this.ctx.fillStyle = this.leavesColor;
-									this.ctx.fillRect(0, 0, this.leaveType, lengthFactor);
+									this.ctx.fillRect(0, 0, this.leavesType, lengthFactor);
 									this.ctx.stroke();
 								}
 
